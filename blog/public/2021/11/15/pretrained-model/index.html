@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="PM," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="自Google在2017年推出Transformer后，自然语言处理全面进入预训练大模型的时代，随之而来的BERT、GPT等大的预训练模型如雨后春笋般出现。带动了整个自然语言处理任务快速发展的同时，还影响了机器视觉和多模态技术的发展。本篇将介绍几个经典主流的预训练语言模型~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="还有人不了解这些预训练模型？">
+<meta property="og:url" content="http://example.com/2021/11/15/pretrained-model/index.html">
+<meta property="og:site_name" content="Chunxia&#39;s Blog">
+<meta property="og:description" content="自Google在2017年推出Transformer后，自然语言处理全面进入预训练大模型的时代，随之而来的BERT、GPT等大的预训练模型如雨后春笋般出现。带动了整个自然语言处理任务快速发展的同时，还影响了机器视觉和多模态技术的发展。本篇将介绍几个经典主流的预训练语言模型~">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-11-15T08:40:46.000Z">
+<meta property="article:modified_time" content="2022-06-13T12:58:35.301Z">
+<meta property="article:author" content="chunxia">
+<meta property="article:tag" content="PM">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/11/15/pretrained-model/"/>
+
+
+
+
+
+  <title>还有人不了解这些预训练模型？ | Chunxia's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Chunxia's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">行到水穷处，坐看云起时</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/15/pretrained-model/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chunxia's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">还有人不了解这些预训练模型？</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-15T16:40:46+08:00">
+                2021-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A2%84%E8%AE%AD%E7%BB%83%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">预训练语言模型</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/15/pretrained-model/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/2021/11/15/pretrained-model/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>自Google在2017年推出Transformer后，自然语言处理全面进入预训练大模型的时代，随之而来的BERT、GPT等大的预训练模型如雨后春笋般出现。带动了整个自然语言处理任务快速发展的同时，还影响了机器视觉和多模态技术的发展。本篇将介绍几个经典主流的预训练语言模型~</p>
+<span id="more"></span>
+<h3 id="ELMo"><a href="#ELMo" class="headerlink" title="ELMo"></a>ELMo</h3><p>是一种动态词向量预训练模型，它使用双向的网络结构进行建模，使用语言模型，因此是双向的。他是用C卷积神经网络对词进行embedding，主体模型使用LSTM。它在多个下游任务上表现达到了SOTA，启发了后来的预训练语言模型。</p>
+<h3 id="BERT、RoBERTa、ALBERT、ELECTRA、XLNet、MacBERT"><a href="#BERT、RoBERTa、ALBERT、ELECTRA、XLNet、MacBERT" class="headerlink" title="BERT、RoBERTa、ALBERT、ELECTRA、XLNet、MacBERT"></a>BERT、RoBERTa、ALBERT、ELECTRA、XLNet、MacBERT</h3><ol>
+<li>BETR采用了Transformer中encode部分。在输入中加入位置信息，使用了掩码语言模型（MLM）和预测下一个句子（NSP）进行预训练。因为MLM本身的建模就是双向的，所以不需要特殊的网络结构就可以实现双向的语义理解。</li>
+<li>RoBERTa是对BERT中的方法进行更加充分的发掘，增加了训练预料，使用基于字节的token，增加batch和step，并去掉了NSP预训练任务，同时对MLM任务进行优化，针对同一个本文有不同种的掩码方案。</li>
+<li>ALBERT是一个轻量级的BETR，主要是对词向量的维度进行压缩，所以模型的参数量会减少。之所以对词向量进行压缩是基于这样的假设，BERT中的词向量和输出向量的维度是一致的，但是在词级别时其实所包含的信息相对较少而且向量相对稀疏，而在上层的网络中会学习到更加复杂的语义表示，所以需要更大维度的向量表示。因为之前的试验认为NSP预训练任务过于简单，所以学习不到太多的语义，所以使用句子顺序预测任务，预测两个句子对的顺序。</li>
+<li>ELECTRA使用了生成对抗的网络结构，训练时使用两个BERT，一个做生成器，一个做判别器，使用替换词检测任务（RTD）进行预训练，预测时只是用判别器，所以生成器的模型结构可以适度减少，大概在判别器的四分之一到二分之一之间。同时由于判别器的输入没有[MASK]字符，所以与下游任务保持一致。</li>
+<li>XLNet使用了Transformer-XL作为主框架，相对传统的transformer拥有较好的性能，它使用了自回归语言模型结构，避免了[MASK]标记带来的上下游任务不一致，通过使用排列语言模型和双流自注意力实现了自编码语言模型中的双向上下文。</li>
+<li>MacBERT中应用了一种基于文本纠错的掩码语言模型，使用整词掩码和同义词替换，并采用了句子顺序预测任务进行预训练。它很好地解决了BERT使用[MASK]掩码带来的“预训练-精调”不一致问题。</li>
+</ol>
+<h3 id="DistilBERT、TinyBERT"><a href="#DistilBERT、TinyBERT" class="headerlink" title="DistilBERT、TinyBERT"></a>DistilBERT、TinyBERT</h3><p>这类模型主要是对预训练模型进行蒸馏。知识蒸馏是一种常用的知识迁移方法，通常由教师模型和学生模型组成，在用于压缩模型方面一般可以通过设置一个更小的学生模型对原始模型进行压缩。</p>
+<ol>
+<li><p>DistilBERT是基于Triple Loss的知识蒸馏方法，教师模型使用BERT-base，学生模型是六层的BERT，使用BERT的前六层进行初始化，预训练使用MLM，损失函数是MLM损失、蒸馏损失和词向量余弦损失之和。</p>
+</li>
+<li><p>TinyBERT主要使用了额外的词向量层蒸馏和中间层蒸馏来进一步提升蒸馏的效果，并使用了两段式蒸馏进一步提升下游任务的效果。</p>
+</li>
+</ol>
+<h3 id="Transformer-XL、Reformer、Longformer、BigBird"><a href="#Transformer-XL、Reformer、Longformer、BigBird" class="headerlink" title="Transformer-XL、Reformer、Longformer、BigBird"></a>Transformer-XL、Reformer、Longformer、BigBird</h3><p>Transformer因为采用自注意力机制使其空间和时间复杂度为$O(n^2)$，因此处理长文本的效率很低。虽然有一些处理长文本的trick，但是并不能解决问题本身。因此提出一些模型来解决上述问题：</p>
+<ol>
+<li>Transformer-XL提出了两种改进策略：状态复用的块级别循环和相对位置编码。</li>
+<li>Reformer引入了局部敏感哈希注意力和可逆Transformer技术，它可以帮助减少模型的内存占用，进而提高对长文本的处理能力。局部敏感哈希注意力的提出基于对Transformer中注意力机制观察的优化，首先通过实验可以看到单独计算查询和键与共享$QK$对整体性能没有太大的差异，同时全局注意力也没有必要，实际上注意力机制中更关心的是经过softmax函数激活的值，而激活的结果主要取决于数值较大的元素，因此在计算中只需要关注与当前查询关联度高的n个词，它可以极大地降低计算量。可以Transformer则是受到可以残差网络的启发，其主要思想是任意一层的激活值可以通过后续激活层进行还原。</li>
+<li>Longformer将输入文本序列的最大长度扩充到4096，提出了三种稀疏注意力模式来降低计算复杂度，分别是滑动窗口注意力，扩张滑动窗口注意力和全局注意力。</li>
+<li>BigBird使用了随机注意力、滑动窗口注意力和全局注意力三种稀疏注意力的方式对Transformer的长文本处理能力进一步进行优化，并通过理论分析证明了稀疏注意力的有效性。</li>
+</ol>
+<h3 id="BART、UniLM、T5、GPT-3"><a href="#BART、UniLM、T5、GPT-3" class="headerlink" title="BART、UniLM、T5、GPT-3"></a>BART、UniLM、T5、GPT-3</h3><p>前面的模型主要关注自然语言表示，而下面的模型更多的集中用于文本生成：</p>
+<ol>
+<li>BART使用了标准的seq2seq tranformer结构，BART的预训练是在于破坏原文档然后优化重构loss。BART采用了多种方式破坏原文档，即采用了多种Noise。对于序列分类（文本分类）任务，encoder和decoder部分都用相同的输入，将deocoder最后一个节点用于多类别线性分类器中。对于序列标注任务，同样是在decoder和encoder采用相同的文本输入，以decoder的隐藏节点输出用于预测每个节点的类别。由于BART的模型框架本身就采用了自回归方式，因而在finetune序列生成任务时，可直接在encoder部分输入原始文本，decoder部分用于预测待生成的文本。BART预训练模型同样也可用于将其它语言翻译为英文。</li>
+<li>UniLM通过引入attention mask实现了单向、双向和seq2seq语言模型，在双向LM模型中，没有任何mask，因为上下文信息都会被融入token中。在从左向右的单向LM模型中，矩阵上半三角会被mask掉，因为token只考虑左边的文本信息。在seq-to-seq模型中，句子s1的矩阵部分没有mask，s1因为s1融合上下文信息，句子s2矩阵的右上三角有mask，因为s2融合了s1的信息和左边的文本信息。使用完形填空和下一句预测作为预训练任务。</li>
+<li>T5从另一个角度实现了NLU和NLG的统一建模，靠着大力出奇迹，采用了Prompt的训练方式，将所有NLP任务都转化成Text-to-Text（文本到文本）任务。</li>
+<li>GPT-3是一种自回归模型，使用仅有解码器的体系结构。使用下一个单词预测目标进行训练。</li>
+</ol>
+<h3 id="Vision-Transformer"><a href="#Vision-Transformer" class="headerlink" title="Vision Transformer"></a>Vision Transformer</h3><p>Vision Transformer可以是看做是CV领域对NLP领域的抄作业，直接将Transformer的结构拿来，使用embedding+encode+MLP head的网络结构，主要区别在于embedding层的不同。对于标准的Transformer模块，要求输入的是token（向量）序列，即二维矩阵[num_token, token_dim]，对于图像数据而言，其数据格式为[H, W, C]是三维矩阵明显不是Transformer想要的。所以需要先通过一个Embedding层来对数据做个变换。</p>
+<h3 id="UNITER、CLIP、UNIMO"><a href="#UNITER、CLIP、UNIMO" class="headerlink" title="UNITER、CLIP、UNIMO"></a>UNITER、CLIP、UNIMO</h3><p>而在Transformer之前，多模态领域并未出现行之有效的预训练模型，图像和文本都各玩各的，毕竟图像的预训练是从imagenet带标签的数据上进行的，而NLP更加牛，它能自回归，能自己mask自己然后让模型去预测。与CV一样多模态预训练模型也是对NLP的抄作业。</p>
+<ol>
+<li>UNITER采用Transformer的encoder结构，主要是在embedding层有所不同，UNITER有两个Embedder，Image Embedder通过对Faster-RCNN的输出ROI feature以及其位置特征（7维，normalized top/left/bottom/right coordinates, width, height, and area.）进行融合建模，需要两个FC和一个LN操作完成。Text Embedder则参考BERT的输入，但是没有segment，然后直接接入Transformer进行双向建模，融合两种模态，从而达成目的，简单明了，不同于双流预训练模型，这两类模态共享同一个Encoder。预训练任务采用MLM，MRM(Mask Region Model, 预测图像，回归或分类，有三种变体)，ITM（Image Text Match, 图文是否一致）和WRA（Word Region Alignment, 字和图像的对齐任务）。</li>
+<li>CLIP用到了零样本学习（zero-shot learning）、自然语言理解和多模态学习等技术，来完成图像的理解。</li>
+<li>UNIMO采用类似的掩码预测自监督方法学习图像和文本的表示。同时，为了将文本和图像的表示映射到统一的语义空间，论文提出跨模态对比学习，基于图文对数据实现图像与文本的统一表示学习。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PM/" rel="tag"># PM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/10/19/word2vec/" rel="next" title="重温经典Word2vec & GloVe">
+                <i class="fa fa-chevron-left"></i> 重温经典Word2vec & GloVe
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/01/11/galaxy-task-oriented-dialog/" rel="prev" title="GALAXY：面向任务型对话的生成式预训练模型">
+                GALAXY：面向任务型对话的生成式预训练模型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#ELMo"><span class="nav-number">1.</span> <span class="nav-text">ELMo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BERT%E3%80%81RoBERTa%E3%80%81ALBERT%E3%80%81ELECTRA%E3%80%81XLNet%E3%80%81MacBERT"><span class="nav-number">2.</span> <span class="nav-text">BERT、RoBERTa、ALBERT、ELECTRA、XLNet、MacBERT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DistilBERT%E3%80%81TinyBERT"><span class="nav-number">3.</span> <span class="nav-text">DistilBERT、TinyBERT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Transformer-XL%E3%80%81Reformer%E3%80%81Longformer%E3%80%81BigBird"><span class="nav-number">4.</span> <span class="nav-text">Transformer-XL、Reformer、Longformer、BigBird</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BART%E3%80%81UniLM%E3%80%81T5%E3%80%81GPT-3"><span class="nav-number">5.</span> <span class="nav-text">BART、UniLM、T5、GPT-3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Vision-Transformer"><span class="nav-number">6.</span> <span class="nav-text">Vision Transformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UNITER%E3%80%81CLIP%E3%80%81UNIMO"><span class="nav-number">7.</span> <span class="nav-text">UNITER、CLIP、UNIMO</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chunxia</span>
+
+  
+</div>
+
+
+  <div class="powered-by">道阻且长，行则将至</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'Quelisa',
+            repo: 'BlogComment',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'ed0d555d3c95540060b1b0b30506791177e3f510',
+            
+                client_id: 'c4740a8b05b5db588024'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

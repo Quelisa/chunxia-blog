@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="PLM,cross-lingual," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="目前在做国际化业务场景中的意图识别，主要探索的语种包括中文、英文、日文、阿文、西文和粤语的场景中。这一篇主要分享对于跨语言模型的调研，了解跨语言模型的现状，之后的文章会分享我自己在现有多语言模型上进行的训练过程，以及优化效果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="跨语言预训练模型">
+<meta property="og:url" content="http://example.com/2022/03/18/cross-lingual-PLM/index.html">
+<meta property="og:site_name" content="Chunxia&#39;s Blog">
+<meta property="og:description" content="目前在做国际化业务场景中的意图识别，主要探索的语种包括中文、英文、日文、阿文、西文和粤语的场景中。这一篇主要分享对于跨语言模型的调研，了解跨语言模型的现状，之后的文章会分享我自己在现有多语言模型上进行的训练过程，以及优化效果。">
+<meta property="og:locale">
+<meta property="og:image" content="https://github.com/Quelisa/picture/raw/main/LM/CAMLM.png">
+<meta property="og:image" content="https://github.com/Quelisa/picture/raw/main/LM/BTMLM.png">
+<meta property="article:published_time" content="2022-03-18T11:30:17.000Z">
+<meta property="article:modified_time" content="2022-06-07T07:12:05.510Z">
+<meta property="article:author" content="chunxia">
+<meta property="article:tag" content="PLM">
+<meta property="article:tag" content="cross-lingual">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/Quelisa/picture/raw/main/LM/CAMLM.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2022/03/18/cross-lingual-PLM/"/>
+
+
+
+
+
+  <title>跨语言预训练模型 | Chunxia's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Chunxia's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">行到水穷处，坐看云起时</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/18/cross-lingual-PLM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chunxia's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">跨语言预训练模型</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-03-18T19:30:17+08:00">
+                2022-03-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">跨语言模型</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2022/03/18/cross-lingual-PLM/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/2022/03/18/cross-lingual-PLM/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>目前在做国际化业务场景中的意图识别，主要探索的语种包括中文、英文、日文、阿文、西文和粤语的场景中。这一篇主要分享对于跨语言模型的调研，了解跨语言模型的现状，之后的文章会分享我自己在现有多语言模型上进行的训练过程，以及优化效果。<br><span id="more"></span></p>
+<h3 id="跨语言模型调研"><a href="#跨语言模型调研" class="headerlink" title="跨语言模型调研"></a>跨语言模型调研</h3><p>众所周知，在bert推出后不久，就推出了多语言bert，简称mbert。mbert与bert的唯一区别在于训练语料的不同，mbert支持104种语言，采用了110k的共享词表。虽然mbert在多语言效果上差强人意，但是很显然在提高多语言表达能力上，预训练模型还有很多工作可以做！借鉴来自机器翻译的经验和自然语言语义对齐词嵌入的经验，在mbert之后陆续提出了XLM、XLM-R、LaBSE、InfoXLM、XLM-E、VECO以及ERNIE-M等预训练多语言模型。除了上述采用encoder的跨语言模型，还有关注与内容生成的序列到序列的跨语言模型MASS和mBART。下面主要讲解下这几个模型的核心思想和架构。</p>
+<h4 id="XLM-1"><a href="#XLM-1" class="headerlink" title="XLM[1]"></a>XLM[1]</h4><p>focebook在2019年提出了XLM模型，XLM主要是在bert的基础上，预训练借鉴了机器翻译中的翻译语言模型使用MLM+TLM或者CLM+MLM交替进行预训练。其中TLM是使用平行语料的监督方法，MLM和CLM是使用单语训练的无监督方法。同时为了平衡多种语言的分布差异，XLM在训练时采用一个缩放的分布对不同语种进行采样，以提高低资源语言的采样数。</p>
+<h4 id="XLM-R-2"><a href="#XLM-R-2" class="headerlink" title="XLM-R[2]"></a>XLM-R[2]</h4><p>随后，focebook在2020年又提出支持100种语言的XLM-R模型，XLM-R采用了XLM的训练方法并使用RoBerta模型。XLM-R使用CommonCrawl数据集进行训练，其数据量较mbert使用的wiki有很大的增加，尤其是在低资源的语种上。实验表明XLM-R相较mbert在XNLI数据集上有很大的提升，在低资源的语种上提升也非常显著。在论文中也首次对影响多语言模型效果的因素进行了分析。主要是从高低资源的权衡以及语言采样和词汇大小的影响。论文通过实验证明了增加相似的语种进行训练可以提高该语种的效果，但是多语种会导致模型的参数增加，增加训练和推理成本。</p>
+<h4 id="LaBSE-3"><a href="#LaBSE-3" class="headerlink" title="LaBSE[3]"></a>LaBSE[3]</h4><p>Google在2020年也推出了自己的跨语言模型LaBSE。LaBSE是基于bi-encoder结构的bert模型，LaBSE支持109种语言，使用MLM+TLM基于平行语料翻译排序任务进行预训练。LaBSE在Tatoeba数据集上获得83.7%的准确率，在此之前的最佳模型得分是65.5%。有意思的是Tatoeba数据集中的30+语种，并没有参与到LaBSE的训练，但是模型依然有较好的表现，展现了LaBSE模型zero-shot的能力。最后文章分析指出，使用预训练的bert可以减少对平行语料的需求。 使用CommonCrawl的数据训练的结果比使用wiki训练的效果好，因为CommonCrawl的数据量更大，噪声也更小。还有一个有趣的发现，使用预训练对比数据选择模型（CDS）选择出来的训练数据要比直接在原始数据上进行训练效果更好，这表明LaBSE对于数据的选择是敏感的。有关这一点我觉得大多数的模型对于数据的选择可以说都是敏感的。这类问题应该归属于领域泛化问题。</p>
+<h4 id="XLM-E-4"><a href="#XLM-E-4" class="headerlink" title="XLM-E[4]"></a>XLM-E[4]</h4><p>XLM-E是微软提出的跨语言模型，它主要基于ELECTRA模型训练的，所以它是一种对抗生成式的模型。它的预训练包括两个任务，一个是多语言替换词检测（MRTD），另一个是翻译替换词检测（TRTD）。替换词检测是在单语语料上，针对每一个句子进行mask后让生成器生成对应的mask位置上的词，然后将生成的词替换原来的句子中的词，最后让判别器判别每个词是生成的还是原来的。翻译替换词检测是在翻译的平行语料句子对上，mask掉每个句子中的一部分词，让生成器去生成mask对应位置的上的词，用生成的词去替换原来句子中对应的词，最后再让判别器去判别该词是否是原来的词。</p>
+<h4 id="InfoXLM-5"><a href="#InfoXLM-5" class="headerlink" title="InfoXLM[5]"></a>InfoXLM[5]</h4><p>InfoXLM是微软开源的跨语言模型，它的创新在于受到信息论和对比学习的启发，设计了一个新的跨语言预训练任务cross-lingual contrast（XLCO）。InfoXLM的预训练的任务除了XLCO还有MMLM和TLM。其MMLM和TLM的损失函数是从词级别互信息的角度建立的。MMLM针对是单语语料输入的文本进行单词的mask来预测被mask的单词，最大化文本和被mask掉的单词的互信息，根据InfoNCE中的理论构建对比loss，<script type="math/tex">L_{MMLM}</script>。同理，TLM只是针对双语翻译的语料，对于同一对句子<script type="math/tex">(c_1,c_2)</script>，<script type="math/tex">x_1</script>是<script type="math/tex">c_1</script>中被mask掉的单词，目标是最大化句子对和被mask掉的词的互信息，这个互信息可以被拆解成两个部分，一部分是<script type="math/tex">c1</script>和<script type="math/tex">x_1</script>的互信息，另一部分是<script type="math/tex">c_2</script>和<script type="math/tex">x_1|c_1</script>的互信息，前一部分相当于是MMLM，后一部分则比较有趣，它其实是使用不同的语言来预测被mask掉的词，因此提高了模型跨语言迁移的能力，其loss为<script type="math/tex">L_{TLM}</script>。而XLCO的损失函数是最大化平行句子嵌入，是从句子级别的互信息角度建立的，其loss为<script type="math/tex">L_{XLCO}</script>。最后InfoXLM的训练loss为<script type="math/tex">L = L_{MMLM} + L_{TLM} + L_{XLCO}</script></p>
+<h4 id="ERNIE-M-6"><a href="#ERNIE-M-6" class="headerlink" title="ERNIE-M[6]"></a>ERNIE-M[6]</h4><p>ERNIE-M是百度基于自己的预训练模型ERNIE在多语言语料上进行训练的跨语言模型。ERNIE-M主要是在预训练的过程中加入了机器翻译中经典的回译方法，对单语数据生成伪平行语料，来解决平行语料不足的问题。ERNIE-M的预训练任务主要包括交叉注意力掩码语言模型（CAMLM）、回译掩码语言模型（BTMLM）、多语言掩码语言模型（MMLM）、翻译语言模型（TLM）。</p>
+<p>这里主要介绍一下CAMLM和BTMLM。下面放两张有关预训练语言模型CAMLM和TLM与MMLM区别的图片，直观感受一下CAMLM的语言对齐的方式。CAMLM中对于被mask的词的词义推理仅依赖平行语料的的另一个句子，不能依赖自己所在的句子本身去推断，而MMLM和TLM则可以。<br><img src="https://github.com/Quelisa/picture/raw/main/LM/CAMLM.png" width="80%" height="50%"></p>
+<p>对于BLMLM，其训练过程主要分为两个阶段：第一个阶段用源句子加掩码做为目标语言的句子，生成目标语言的翻译数据；第二个阶段将生成的伪平行语料输入，并对源句子进行掩码，训练掩码的输出。具体过程如下图：<br><img src="https://github.com/Quelisa/picture/raw/main/LM/BTMLM.png" width="50%" height="60%"></p>
+<p>整体来说ERNIE-M效果还不错，在XNLI数据集上ERINE-M的效果比InfoXML要好。</p>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p>[1] Lample G, Conneau A. Cross-lingual language model pretraining[J]. arXiv preprint arXiv:1901.07291, 2019.<br>[2] Conneau A, Khandelwal K, Goyal N, et al. Unsupervised cross-lingual representation learning at scale[J]. arXiv preprint arXiv:1911.02116, 2019.<br>[3] Feng F, Yang Y, Cer D, et al. Language-agnostic bert sentence embedding[J]. arXiv preprint arXiv:2007.01852, 2020.<br>[4] Chi Z, Huang S, Dong L, et al. XLM-E: cross-lingual language model pre-training via ELECTRA[J]. arXiv preprint arXiv:2106.16138, 2021.<br>[5] Chi Z, Dong L, Wei F, et al. InfoXLM: An information-theoretic framework for cross-lingual language model pre-training[J]. arXiv preprint arXiv:2007.07834, 2020.<br>[6] Ouyang X, Wang S, Pang C, et al. ERNIE-M: enhanced multilingual representation by aligning cross-lingual semantics with monolingual corpora[J]. arXiv preprint arXiv:2012.15674, 2020.</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PLM/" rel="tag"># PLM</a>
+          
+            <a href="/tags/cross-lingual/" rel="tag"># cross-lingual</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/03/10/pretrain-model-yue-01/" rel="next" title="粤语模型训练系列之数据收集">
+                <i class="fa fa-chevron-left"></i> 粤语模型训练系列之数据收集
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/05/06/roformer/" rel="prev" title="预训练模型RoFormer浅析">
+                预训练模型RoFormer浅析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%A0%94"><span class="nav-number">1.</span> <span class="nav-text">跨语言模型调研</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#XLM-1"><span class="nav-number">1.1.</span> <span class="nav-text">XLM[1]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#XLM-R-2"><span class="nav-number">1.2.</span> <span class="nav-text">XLM-R[2]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LaBSE-3"><span class="nav-number">1.3.</span> <span class="nav-text">LaBSE[3]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#XLM-E-4"><span class="nav-number">1.4.</span> <span class="nav-text">XLM-E[4]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InfoXLM-5"><span class="nav-number">1.5.</span> <span class="nav-text">InfoXLM[5]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ERNIE-M-6"><span class="nav-number">1.6.</span> <span class="nav-text">ERNIE-M[6]</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">2.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chunxia</span>
+
+  
+</div>
+
+
+  <div class="powered-by">道阻且长，行则将至</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'Quelisa',
+            repo: 'BlogComment',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'ed0d555d3c95540060b1b0b30506791177e3f510',
+            
+                client_id: 'c4740a8b05b5db588024'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="mention,时间实体," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="任务型对话中会话的推进主要依靠意图的识别和实体信息的收集。而实体识别目前在工业落地主要使用规则模板的方式来保证准确率，而且实体类别众多，每一类实体的mention要考虑的情况特别多，实现起来相对复杂，因此具有有很大的提升空间。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我对时间实体mention的理解">
+<meta property="og:url" content="http://example.com/2021/01/06/time-mention/index.html">
+<meta property="og:site_name" content="Chunxia&#39;s Blog">
+<meta property="og:description" content="任务型对话中会话的推进主要依靠意图的识别和实体信息的收集。而实体识别目前在工业落地主要使用规则模板的方式来保证准确率，而且实体类别众多，每一类实体的mention要考虑的情况特别多，实现起来相对复杂，因此具有有很大的提升空间。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-01-06T08:40:04.000Z">
+<meta property="article:modified_time" content="2022-06-09T12:41:31.190Z">
+<meta property="article:author" content="chunxia">
+<meta property="article:tag" content="mention">
+<meta property="article:tag" content="时间实体">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/01/06/time-mention/"/>
+
+
+
+
+
+  <title>我对时间实体mention的理解 | Chunxia's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Chunxia's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">行到水穷处，坐看云起时</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/06/time-mention/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chunxia's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">我对时间实体mention的理解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-06T16:40:04+08:00">
+                2021-01-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%9E%E4%BD%93%E8%AF%86%E5%88%AB/" itemprop="url" rel="index">
+                    <span itemprop="name">实体识别</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/06/time-mention/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/2021/01/06/time-mention/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>任务型对话中会话的推进主要依靠意图的识别和实体信息的收集。而实体识别目前在工业落地主要使用规则模板的方式来保证准确率，而且实体类别众多，每一类实体的mention要考虑的情况特别多，实现起来相对复杂，因此具有有很大的提升空间。<br><span id="more"></span></p>
+<h3 id="实体识别和mention的关系"><a href="#实体识别和mention的关系" class="headerlink" title="实体识别和mention的关系"></a>实体识别和mention的关系</h3><p>实体识别应用比较多的主要是关系抽取和对话理解。关系抽取主要是将抽取到的实体和关系进行匹配，所以主要对实体识别的准确率要求较高。而任务型对话除了要求高精度的实体识别外还要进行实体的mention。什么是实体mention呢？我自己的理解就是，比如用户访问：”我要明天到北京的机票“。这里的”明天“要被是被成一个时间的实体，这个实体的mention是具体的那一天比如明天是2021年5月12号，这里明天对应的mention就是2021年5月12号，这样对话机器人拿到这个实体的信息才是有意义的，它才可以通过查询拿到用户需要的信息并返回给用户。</p>
+<h3 id="时间实体识别的分类"><a href="#时间实体识别的分类" class="headerlink" title="时间实体识别的分类"></a>时间实体识别的分类</h3><p>目前主流的对于时间实体识别的分类主要分为date、time和duration。</p>
+<ol>
+<li>date是日期，例如2021年5月1日</li>
+<li>time是时间，例如12点58分</li>
+<li>duration是一个时间单位的大小，比如5年、半个月、2两小时、十秒等</li>
+</ol>
+<h3 id="时间实体mention的挑战"><a href="#时间实体mention的挑战" class="headerlink" title="时间实体mention的挑战"></a>时间实体mention的挑战</h3><ol>
+<li>时间分类的多样性，比如时间点、时间段、时间周期</li>
+<li>时间的规则多样性，比如2月闰年29天，平年28天，节假日的规定不固定等，导致时间的校验困难</li>
+<li>时间的颗粒度控制，比如用户关系的是小时范围发生的事还是一天范围发生的事</li>
+<li>时间表达的多样性，比如3点15分可以表达为3点一刻，还比如昨天，过去两个小时等</li>
+</ol>
+<h3 id="时间实体mention的范围"><a href="#时间实体mention的范围" class="headerlink" title="时间实体mention的范围"></a>时间实体mention的范围</h3><p>mention的划分根据不同的维度有不同的分类，由于我们的场景的任务型问答场景，所以主要针对真实场景中遇到问题进行mention的划分，为后一步的mention抽取设计做好准备。下面可以举几个实际业务中的例子进行直观感受一下。</p>
+<p>(1) 举例1：准确的时间描述<br>user：我想预定今天下午2点的《功夫熊猫》<br>bot： 好的，已为您预定2021年5月6号14:00:00的《功夫熊猫》  </p>
+<p>(2) 举例2：准确的日期描述<br>bot: 请问什么时候发货<br>user: 后天<br>bot: 好的，发货日期为2021年5月8号  </p>
+<p>(3) 举例3：准确的时间段描述<br>bot: 请问预定什么时间段呢？<br>user: 今天上午10点到11点半<br>bot: 已为您预定2021年5月6号10:00:00-2021年5月6号11:30:00的会议室  </p>
+<p>(4) 举例4：准确日期段的描述<br>bot: 请问举办日期段是？<br>user: 2021年5月6号到2021年5月12号<br>bot: 已为您预定2021年5月6号-2021年5月12号的举办场地  </p>
+<p>(5) 举例5：通过推断的时间描述<br>user: 15分钟后提醒我开会<br>bot: 好的，已为您设置2021年5月5号14:15:00开会的闹钟  </p>
+<p>(6) 举例6：通过推断的日期描述<br>bot: 请问什么时候送达<br>user: 母情节那天<br>bot: 好的，我们将在2021年5月8号为您送达。  </p>
+<p>(7) 举例7：通过推断的时间段描述<br>bot：请问你需要订阅多久<br>user：预定一个月<br>bot: 好的，已为您开通2021年5月6号00:00:00-2021年6月6号00:00:00的超级会员  </p>
+<p>(8) 举例8：通过推断的时间周期<br>bot: 请问要例会安排在什么时候<br>user: 每天早上10点<br>bot: 已为您安排每天上午10:00:00的例会  </p>
+<p>(9) 举例9：通过推断的时间周期<br>bot: 请问要安排在哪几天<br>user: 每周二和周三<br>bot: keep为您在每周二、周三安排训练  </p>
+<p>以上的mention主要将时间根据时间点和时间段进行一个大的分类，在时间点内根据时间颗粒度的不同又划分为日期和每日的时间。在这三个基本面上，根据时间的周期特性又可以延伸出周期时间点和周期时间段，根据人们日常表达中的口语特性又可以延伸出推测时间点和推测时间段。所以整体的mention类型划分如下：</p>
+<ol>
+<li>准确时间mention：一天内时间（time）、日期（date）和时间段（duration）以及日期时间段</li>
+<li>周期时间mention：每天的时间周期（cycle_time）、日期的周期（cycle_date）和时间段的周期（cycle_duration）</li>
+<li>推测时间mention：准确时间点+时间长度的（shift_time）、准确日期点+日期长度的（shift_date）和准确时间段+时间长度的（shift_duration）</li>
+<li>推测周期时间mention：每天的时间周期+时间长度的（cycle_shift_time）、日期的周期+日期长度的（cycle_shift_date）和时间段的周期+时间长度的（cycle_shift_duration）</li>
+</ol>
+<h3 id="设计遐想"><a href="#设计遐想" class="headerlink" title="设计遐想"></a>设计遐想</h3><p>在明确了mention分类后，其实已经有了整体的mention框架，mention的第一步无疑是进行时间实体的识别，识别的归类是date、time和duration，除了识别时间外还要识别。实体识别后要进行一步归一化处理，抽取出标准的表达，例如“2021年5月6日”识别为一个准确date的实体，具体归一化为一个标准的表达“2021年5月6号”。“明天”则识别为推测时间，在归一化时需要取得当前日期，在当前日期上进行时长运算得到标准的时间表达“2021年5月7日”。对于周期性的时间表达，如每周六等系统默认给出一个范围内的所有周六的计算方式。</p>
+<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><p>这是一个初步的设计的思路，后续有空补详细代码设计和代码实现。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mention/" rel="tag"># mention</a>
+          
+            <a href="/tags/%E6%97%B6%E9%97%B4%E5%AE%9E%E4%BD%93/" rel="tag"># 时间实体</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/05/begin-to-learn-nlp/" rel="next" title="Learning NLP">
+                <i class="fa fa-chevron-left"></i> Learning NLP
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/03/02/bert-3w/" rel="prev" title="BERT 知多少">
+                BERT 知多少 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E8%AF%86%E5%88%AB%E5%92%8Cmention%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">1.</span> <span class="nav-text">实体识别和mention的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E5%AE%9E%E4%BD%93%E8%AF%86%E5%88%AB%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-number">2.</span> <span class="nav-text">时间实体识别的分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E5%AE%9E%E4%BD%93mention%E7%9A%84%E6%8C%91%E6%88%98"><span class="nav-number">3.</span> <span class="nav-text">时间实体mention的挑战</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E5%AE%9E%E4%BD%93mention%E7%9A%84%E8%8C%83%E5%9B%B4"><span class="nav-number">4.</span> <span class="nav-text">时间实体mention的范围</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E9%81%90%E6%83%B3"><span class="nav-number">5.</span> <span class="nav-text">设计遐想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TODO"><span class="nav-number">6.</span> <span class="nav-text">TODO</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chunxia</span>
+
+  
+</div>
+
+
+  <div class="powered-by">道阻且长，行则将至</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'Quelisa',
+            repo: 'BlogComment',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'ed0d555d3c95540060b1b0b30506791177e3f510',
+            
+                client_id: 'c4740a8b05b5db588024'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
